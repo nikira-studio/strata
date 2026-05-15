@@ -2917,8 +2917,12 @@ Scope is the PRIMARY mechanism for preventing memory bleed between users in mult
 
 See §5a for the full deployment model, scope resolution rules, and scope reference table.
 
+**Operational hardening borrowed from agent-core:** workspace-scoped reads and writes SHOULD also verify that the workspace is still active before proceeding. Shared-scope writes SHOULD be denied unless the deployment has an explicit allowlist or operator-in-the-loop review path. This keeps scope enforcement tied to live deployment state instead of treating scope strings as the only control.
+
 ### 21.2 PII Gate for Shared Memory
 Before writing any record to `shared` scope, the implementation SHOULD scan the content for PII indicators (email addresses, phone numbers, SSNs, IP addresses that identify individuals, etc.). Reject or quarantine records that contain PII before they reach shared scope. User-scoped records may contain PII.
+
+Retrieval queries SHOULD be screened for obvious noise or credential-like patterns before they reach FTS/vector search. Reject trivial stop-word-only queries, punctuation-only queries, and secret-shaped tokens early. This reduces accidental leakage of sensitive search terms into logs and avoids wasting retrieval cycles on non-queries.
 
 ### 21.3 Sensitive Domain Handling
 Sensitive memory (credentials, secrets, access tokens, security configurations) MUST:
@@ -3262,11 +3266,15 @@ For a local-first sovereign deployment:
 | Evidence promotion pipeline | enabled |
 | Session ingestion cursors | enabled |
 | Scratchpad TTL | 3600s (1 hour) |
+| Query hygiene gate | enabled |
+| Active workspace enforcement | enabled |
+| Shared-scope write allowlist / review | enabled |
 | Agent tool interface | enabled |
 | Privacy audit logging | enabled |
 | Nightly maintenance loop | enabled |
 | sqlite-vec extension | enabled if available; `LOCAL_HYBRID` mode when loaded |
 | Embedding/vector retrieval | `LOCAL_HYBRID` via sqlite-vec when extension available; `FTS_ONLY` otherwise |
+| Retrieval degradation audit | enabled |
 | LLM reranker | disabled until needed |
 | Post-turn extraction | disabled until needed |
 | Reflect pass (opinion/belief) | enabled (runs after promotion pass) |

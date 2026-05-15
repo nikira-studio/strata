@@ -131,6 +131,7 @@ Graph-first systems can provide rich temporal and relational memory. Strata choo
 | What you need | Strata's approach |
 |---|---|
 | Retrieval when the vector backend is down | FTS5 full-text search always available; hybrid mode degrades gracefully via circuit breaker |
+| Filtering out noisy or secret-shaped queries | Query hygiene gate rejects trivial and credential-like searches before retrieval |
 | Knowing which version of a fact is current | Supersession chain — old records archived, not overwritten; freshness annotations signal when to re-verify |
 | Reasoning across related pieces of memory | Domain/topic hierarchy routes queries to the right partition before search |
 | Getting durable memory out of a conversation | Evidence promotion pipeline: raw turns captured, classified, and promoted to structured records automatically |
@@ -162,6 +163,8 @@ An agent that currently calls `search_vector_db(query)` replaces it with `memory
 ### Multi-agent systems
 
 When multiple specialized agents collaborate — planner, researcher, coder, reviewer — Strata's scope model gives each agent its own memory partition by default. Shared memory is explicitly designated. Sub-agents cannot acquire broader memory access than their delegating agent. The integrity chain provides a tamper-evident audit log across the whole system.
+
+Shared-scope writes remain operator-controlled, and workspace-scoped memory should only be used while the workspace is active. That keeps the deployment behavior aligned with the actual system state instead of just the configured scope strings.
 
 ### Any application where users return across sessions
 
